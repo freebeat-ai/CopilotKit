@@ -76,6 +76,7 @@ import {
 } from "../observability";
 import { AbstractAgent } from "@ag-ui/client";
 import { MessageRole } from "../../graphql/types/enums";
+import { CrewAIAgent } from "@ag-ui/crewai";
 
 // +++ MCP Imports +++
 import {
@@ -535,8 +536,8 @@ export class CopilotRuntime<const T extends Parameter[] | [] = []> {
       }
       if (serviceAdapter instanceof EmptyAdapter) {
         throw new CopilotKitMisuseError({
-          message: `Invalid adapter configuration: EmptyAdapter is only meant to be used with agent lock mode. 
-For non-agent components like useCopilotChatSuggestions, CopilotTextarea, or CopilotTask, 
+          message: `Invalid adapter configuration: EmptyAdapter is only meant to be used with agent lock mode.
+For non-agent components like useCopilotChatSuggestions, CopilotTextarea, or CopilotTask,
 please use an LLM adapter instead.`,
         });
       }
@@ -787,10 +788,13 @@ please use an LLM adapter instead.`,
   }
 
   async getAllAgents(graphqlContext: GraphQLContext): Promise<(AgentWithEndpoint | Agent)[]> {
-    const [agentsWithEndpoints, aguiAgents] = await Promise.all([
-      this.discoverAgentsFromEndpoints(graphqlContext),
-      this.discoverAgentsFromAgui(),
-    ]);
+    // const [agentsWithEndpoints, aguiAgents] = await Promise.all([
+    //   this.discoverAgentsFromEndpoints(graphqlContext),
+    //   this.discoverAgentsFromAgui(),
+    // ]);
+
+    const agentsWithEndpoints = await this.discoverAgentsFromEndpoints(graphqlContext);
+    const aguiAgents = this.discoverCrewAIAgentsFromAguiSimple();
 
     this.availableAgents = [...agentsWithEndpoints, ...aguiAgents].map((a) => ({
       name: a.name,
@@ -826,7 +830,7 @@ please use an LLM adapter instead.`,
               message: `
               Failed to find or contact remote endpoint at url ${endpoint.deploymentUrl}.
               Make sure the API is running and that it's indeed a LangGraph platform url.
-              
+
               See more: https://docs.copilotkit.ai/troubleshooting/common-issues`,
             });
           }
@@ -903,13 +907,75 @@ please use an LLM adapter instead.`,
             message: `
               Failed to find or contact agent ${agent.graphId}.
               Make sure the LangGraph API is running and the agent is defined in langgraph.json
-              
+
               See more: https://docs.copilotkit.ai/troubleshooting/common-issues`,
           });
         }
         const endpointAgents = data.map((entry) => ({
           name: entry.graph_id,
           id: entry.assistant_id,
+          description: "",
+        }));
+        return [...agents, ...endpointAgents];
+      },
+      Promise.resolve([]),
+    );
+
+    return agents;
+  }
+
+  /**
+   * Discover CrewAI agents from the local AGUI configuration (Simple synchronous version)
+   * This version directly maps local CrewAI agents without network validation
+   */
+  discoverCrewAIAgentsFromAguiSimple(): Agent[] {
+    // Create a virtual endpoint for local CrewAI agents
+    return Object.values(this.agents ?? []).map((agent: CrewAIAgent) => ({
+      name: "mv_agent",
+      id: agent.agentId,
+      description: "",
+    }));
+  }
+
+  /**
+   * Discover CrewAI agents from the local AGUI configuration (Full async version with validation)
+   * This version validates agent connectivity similar to LangGraph agents
+   */
+  async discoverCrewAIAgentsFromAgui(): Promise<AgentWithEndpoint[]> {
+    // Create a virtual endpoint for local CrewAI agents
+    const localCrewAIEndpoint: CopilotKitEndpoint = {
+      url: "local://crewai-agui",
+      type: EndpointType.CopilotKit,
+    };
+
+    const agents: Promise<AgentWithEndpoint[]> = Object.values(this.agents ?? []).reduce(
+      async (acc: Promise<Agent[]>, agent: CrewAIAgent) => {
+        const agents = await acc;
+
+        // try {
+        //   // Test agent connectivity by calling get_state with a test thread_id
+        //   const testThreadId = "test_connection_" + Date.now();
+        //   await agent.get_state({ thread_id: testThreadId });
+
+        //   const endpointAgent: AgentWithEndpoint = {
+        //     name: agent.name || agent.agentName,
+        //     id: agent.agentId || randomId(),
+        //     description: agent.description || "",
+        //     endpoint: localCrewAIEndpoint,
+        //   };
+        //   return [...agents, endpointAgent];
+        // } catch (e) {
+        //   throw new CopilotKitMisuseError({
+        //     message: `
+        //       Failed to find or contact CrewAI agent ${agent.name || 'unknown'}.
+        //       Make sure the CrewAI agent is properly configured and accessible.
+
+        //       See more: https://docs.copilotkit.ai/troubleshooting/common-issues`,
+        //   });
+        // }
+        const endpointAgents = agents.map((entry: any) => ({
+          name: entry.name,
+          id: entry.id,
           description: "",
         }));
         return [...agents, ...endpointAgents];
@@ -992,56 +1058,130 @@ please use an LLM adapter instead.`,
       ? { authorization: `Bearer ${graphqlContext.properties.authorization}` }
       : null;
 
-    let client: LangGraphClient;
-    if ("endpoint" in agent && agent.endpoint.type === EndpointType.LangGraphPlatform) {
-      client = new LangGraphClient({
-        apiUrl: agent.endpoint.deploymentUrl,
-        apiKey: agent.endpoint.langsmithApiKey,
-        defaultHeaders: { ...propertyHeaders },
-      });
-    } else {
-      const aguiAgent = graphqlContext._copilotkit.runtime.agents[agent.name] as LangGraphAgent;
-      if (!aguiAgent) {
-        throw new Error(`Agent: ${agent.name} could not be resolved`);
-      }
-      // @ts-expect-error -- both clients are the same
-      client = aguiAgent.client;
+    const aguiAgent = graphqlContext._copilotkit.runtime.agents[agent.name] as CrewAIAgent;
+    console.log("aguiAgent", aguiAgent);
+    if (!aguiAgent) {
+      throw new Error(`Agent: ${agent.name} could not be resolved`);
     }
-    let state: any = {};
+
+    const fetchUrl = `${aguiAgent.url}/agents/state`;
     try {
-      state = (await client.threads.getState(threadId)).values as any;
-    } catch (error) {
-      // All errors from agent state loading are user configuration issues
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      // Build headers for CrewAI agent state request
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
 
-      // Log user configuration errors at debug level to reduce noise
-      console.debug(`Agent '${agentName}' configuration issue: ${errorMessage}`);
+      // Add authorization header if available
+      if (graphqlContext.properties.authorization) {
+        headers["Authorization"] = `Bearer ${graphqlContext.properties.authorization}`;
+      }
 
-      // Throw a configuration error - all agent state loading failures are user setup issues
-      throw new ResolvedCopilotKitError({
-        status: 400,
-        message: `Agent '${agentName}' failed to execute: ${errorMessage}`,
-        code: CopilotKitErrorCode.CONFIGURATION_ERROR,
+      // Add custom headers if available and is an object
+      if (
+        graphqlContext.properties.headers &&
+        typeof graphqlContext.properties.headers === "object"
+      ) {
+        Object.assign(headers, graphqlContext.properties.headers);
+      }
+
+      const response = await fetchWithRetry(fetchUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          properties: graphqlContext.properties,
+          threadId,
+          name: agentName,
+        }),
       });
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new CopilotKitApiDiscoveryError({ url: fetchUrl });
+        }
+
+        // Extract semantic error information from response body
+        let errorMessage = `HTTP ${response.status} error`;
+        try {
+          const errorBody = await response.text();
+          const parsedError = JSON.parse(errorBody);
+          if (parsedError.error && typeof parsedError.error === "string") {
+            errorMessage = parsedError.error;
+          }
+        } catch {
+          // If parsing fails, fall back to generic message
+        }
+
+        throw new ResolvedCopilotKitError({
+          status: response.status,
+          url: fetchUrl,
+          isRemoteEndpoint: true,
+          message: errorMessage,
+        });
+      }
+
+      const data: LoadAgentStateResponse = await response.json();
+
+      return {
+        ...data,
+        state: JSON.stringify(data.state),
+        messages: JSON.stringify(data.messages),
+      };
+    } catch (error) {
+      if (error instanceof CopilotKitError) {
+        throw error;
+      }
+      throw new CopilotKitLowLevelError({ error, url: fetchUrl });
     }
 
-    if (Object.keys(state).length === 0) {
-      return {
-        threadId: threadId || "",
-        threadExists: false,
-        state: JSON.stringify({}),
-        messages: JSON.stringify([]),
-      };
-    } else {
-      const { messages, ...stateWithoutMessages } = state;
-      const copilotkitMessages = langchainMessagesToCopilotKit(messages);
-      return {
-        threadId: threadId || "",
-        threadExists: true,
-        state: JSON.stringify(stateWithoutMessages),
-        messages: JSON.stringify(copilotkitMessages),
-      };
-    }
+    // let client: LangGraphClient;
+    // if ("endpoint" in agent && agent.endpoint.type === EndpointType.LangGraphPlatform) {
+    //   client = new LangGraphClient({
+    //     apiUrl: agent.endpoint.deploymentUrl,
+    //     apiKey: agent.endpoint.langsmithApiKey,
+    //     defaultHeaders: { ...propertyHeaders },
+    //   });
+    // } else {
+    //   const aguiAgent = graphqlContext._copilotkit.runtime.agents[agent.name] as LangGraphAgent;
+    //   if (!aguiAgent) {
+    //     throw new Error(`Agent: ${agent.name} could not be resolved`);
+    //   }
+    //   // @ts-expect-error -- both clients are the same
+    //   client = aguiAgent.client;
+    // }
+    // let state: any = {};
+    // try {
+    //   state = (await client.threads.getState(threadId)).values as any;
+    // } catch (error) {
+    //   // All errors from agent state loading are user configuration issues
+    //   const errorMessage = error instanceof Error ? error.message : String(error);
+
+    //   // Log user configuration errors at debug level to reduce noise
+    //   console.debug(`Agent '${agentName}' configuration issue: ${errorMessage}`);
+
+    //   // Throw a configuration error - all agent state loading failures are user setup issues
+    //   throw new ResolvedCopilotKitError({
+    //     status: 400,
+    //     message: `Agent '${agentName}' failed to execute: ${errorMessage}`,
+    //     code: CopilotKitErrorCode.CONFIGURATION_ERROR,
+    //   });
+    // }
+
+    // if (Object.keys(state).length === 0) {
+    //   return {
+    //     threadId: threadId || "",
+    //     threadExists: false,
+    //     state: JSON.stringify({}),
+    //     messages: JSON.stringify([]),
+    //   };
+    // } else {
+    //   const { messages, ...stateWithoutMessages } = state;
+    //   const copilotkitMessages = langchainMessagesToCopilotKit(messages);
+    //   return {
+    //     threadId: threadId || "",
+    //     threadExists: true,
+    //     state: JSON.stringify(stateWithoutMessages),
+    //     messages: JSON.stringify(copilotkitMessages),
+    //   };
+    // }
 
     throw new Error(`Agent: ${agent.name} could not be resolved`);
   }
