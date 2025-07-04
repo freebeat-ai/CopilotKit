@@ -788,13 +788,8 @@ please use an LLM adapter instead.`,
   }
 
   async getAllAgents(graphqlContext: GraphQLContext): Promise<(AgentWithEndpoint | Agent)[]> {
-    // const [agentsWithEndpoints, aguiAgents] = await Promise.all([
-    //   this.discoverAgentsFromEndpoints(graphqlContext),
-    //   this.discoverAgentsFromAgui(),
-    // ]);
-
     const agentsWithEndpoints = await this.discoverAgentsFromEndpoints(graphqlContext);
-    const aguiAgents = this.discoverCrewAIAgentsFromAguiSimple();
+    const aguiAgents = this.discoverAgentsFromAgui();
 
     this.availableAgents = [...agentsWithEndpoints, ...aguiAgents].map((a) => ({
       name: a.name,
@@ -889,101 +884,25 @@ please use an LLM adapter instead.`,
     return agents;
   }
 
-  async discoverAgentsFromAgui(): Promise<AgentWithEndpoint[]> {
-    const agents: Promise<AgentWithEndpoint[]> = Object.values(this.agents ?? []).reduce(
-      async (acc: Promise<Agent[]>, agent: LangGraphAgent) => {
-        const agents = await acc;
-
-        const client = agent.client;
-        let data: Array<{ assistant_id: string; graph_id: string }> | { detail: string } = [];
-        try {
-          data = await client.assistants.search();
-
-          if (data && "detail" in data && (data.detail as string).toLowerCase() === "not found") {
-            throw new CopilotKitAgentDiscoveryError({ availableAgents: this.availableAgents });
-          }
-        } catch (e) {
-          throw new CopilotKitMisuseError({
-            message: `
-              Failed to find or contact agent ${agent.graphId}.
-              Make sure the LangGraph API is running and the agent is defined in langgraph.json
-
-              See more: https://docs.copilotkit.ai/troubleshooting/common-issues`,
-          });
-        }
-        const endpointAgents = data.map((entry) => ({
-          name: entry.graph_id,
-          id: entry.assistant_id,
-          description: "",
-        }));
-        return [...agents, ...endpointAgents];
-      },
-      Promise.resolve([]),
-    );
-
-    return agents;
+  discoverAgentsFromAgui(): Agent[] {
+    return Object.entries(this.agents ?? []).map(([key, agent]: [string, AbstractAgent]) => ({
+      name: (agent as any).agentName ?? key,
+      id: agent.agentId ?? key,
+      description: agent.description ?? "",
+    }));
   }
 
   /**
    * Discover CrewAI agents from the local AGUI configuration (Simple synchronous version)
    * This version directly maps local CrewAI agents without network validation
    */
-  discoverCrewAIAgentsFromAguiSimple(): Agent[] {
+  discoverCrewAIAgentsFromAgui(): Agent[] {
     // Create a virtual endpoint for local CrewAI agents
     return Object.values(this.agents ?? []).map((agent: CrewAIAgent) => ({
       name: "mv_agent",
       id: agent.agentId,
       description: "",
     }));
-  }
-
-  /**
-   * Discover CrewAI agents from the local AGUI configuration (Full async version with validation)
-   * This version validates agent connectivity similar to LangGraph agents
-   */
-  async discoverCrewAIAgentsFromAgui(): Promise<AgentWithEndpoint[]> {
-    // Create a virtual endpoint for local CrewAI agents
-    const localCrewAIEndpoint: CopilotKitEndpoint = {
-      url: "local://crewai-agui",
-      type: EndpointType.CopilotKit,
-    };
-
-    const agents: Promise<AgentWithEndpoint[]> = Object.values(this.agents ?? []).reduce(
-      async (acc: Promise<Agent[]>, agent: CrewAIAgent) => {
-        const agents = await acc;
-
-        // try {
-        //   // Test agent connectivity by calling get_state with a test thread_id
-        //   const testThreadId = "test_connection_" + Date.now();
-        //   await agent.get_state({ thread_id: testThreadId });
-
-        //   const endpointAgent: AgentWithEndpoint = {
-        //     name: agent.name || agent.agentName,
-        //     id: agent.agentId || randomId(),
-        //     description: agent.description || "",
-        //     endpoint: localCrewAIEndpoint,
-        //   };
-        //   return [...agents, endpointAgent];
-        // } catch (e) {
-        //   throw new CopilotKitMisuseError({
-        //     message: `
-        //       Failed to find or contact CrewAI agent ${agent.name || 'unknown'}.
-        //       Make sure the CrewAI agent is properly configured and accessible.
-
-        //       See more: https://docs.copilotkit.ai/troubleshooting/common-issues`,
-        //   });
-        // }
-        const endpointAgents = agents.map((entry: any) => ({
-          name: entry.name,
-          id: entry.id,
-          description: "",
-        }));
-        return [...agents, ...endpointAgents];
-      },
-      Promise.resolve([]),
-    );
-
-    return agents;
   }
 
   async loadAgentState(
