@@ -1,5 +1,35 @@
 # ui
 
+## 1.9.2-next.14
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.9.2-next.14
+- @copilotkit/shared@1.9.2-next.14
+
+## 1.9.2-next.13
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.9.2-next.13
+- @copilotkit/shared@1.9.2-next.13
+
+## 1.9.2-next.12
+
+### Patch Changes
+
+- 3f8c575: - fix: use time travel for regeneration of messages
+  - fix: use a better cutoff for regeneration request
+  - @copilotkit/runtime-client-gql@1.9.2-next.12
+  - @copilotkit/shared@1.9.2-next.12
+
+## 1.9.2-next.11
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.9.2-next.11
+- @copilotkit/shared@1.9.2-next.11
+
 ## 1.9.2-next.10
 
 ### Patch Changes
