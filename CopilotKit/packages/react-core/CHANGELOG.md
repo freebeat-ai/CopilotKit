@@ -1,5 +1,90 @@
 # ui
 
+## 1.9.2-next.23
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.9.2-next.23
+- @copilotkit/shared@1.9.2-next.23
+
+## 1.9.2-next.22
+
+### Patch Changes
+
+- c75a04f: - Fix dynamic runtime configuration updates in useCoAgent
+  - In use-chat.ts, agent state updates from AgentStateMessage now preserve existing config property
+- c75a04f: - Fix dynamic runtime configuration updates in useCoAgent
+  - @copilotkit/runtime-client-gql@1.9.2-next.22
+  - @copilotkit/shared@1.9.2-next.22
+
+## 1.9.2-next.21
+
+### Patch Changes
+
+- 92e8d1c: - fix infinite loop
+  - @copilotkit/runtime-client-gql@1.9.2-next.21
+  - @copilotkit/shared@1.9.2-next.21
+
+## 1.9.2-next.20
+
+### Patch Changes
+
+- e1de032: - fix: synchronously execute renderAndWaitForResponse
+
+  Previously, it was impossible to execute multiple human-in-the-loop (renderAndWaitForResponse)
+  calls in a row. Ultimately this was due to an issue with how CopilotKit was rendering the updates
+  when multiple renderAndWaitForResponse actions appeared on screen due to a reference based approach.
+
+  With this change, actions will be executed in a synchronous way appearing almost queue like. This
+  works with any combination of action given much more freedom when asking for user input.
+
+  Signed-off-by: Tyler Slaton <tyler@copilotkit.ai>
+
+  - @copilotkit/runtime-client-gql@1.9.2-next.20
+  - @copilotkit/shared@1.9.2-next.20
+
+## 1.9.2-next.19
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.9.2-next.19
+- @copilotkit/shared@1.9.2-next.19
+
+## 1.9.2-next.18
+
+### Patch Changes
+
+- fac89c2: - refactor: rename onTrace to onError throughout codebase
+
+  - Rename CopilotTraceEvent to CopilotErrorEvent and CopilotTraceHandler to CopilotErrorHandler
+
+- Updated dependencies [fac89c2]
+  - @copilotkit/shared@1.9.2-next.18
+  - @copilotkit/runtime-client-gql@1.9.2-next.18
+
+## 1.9.2-next.17
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.9.2-next.17
+- @copilotkit/shared@1.9.2-next.17
+
+## 1.9.2-next.16
+
+### Patch Changes
+
+- fe9009c: - feat(langgraph): new thread metadata
+  - @copilotkit/runtime-client-gql@1.9.2-next.16
+  - @copilotkit/shared@1.9.2-next.16
+
+## 1.9.2-next.15
+
+### Patch Changes
+
+- cbeccb5: - fix: refrain repeated api calls by memoizing state
+  - @copilotkit/runtime-client-gql@1.9.2-next.15
+  - @copilotkit/shared@1.9.2-next.15
+
 ## 1.9.2-next.14
 
 ### Patch Changes

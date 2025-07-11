@@ -1,5 +1,73 @@
 # @copilotkit/runtime
 
+## 1.9.2-next.23
+
+### Patch Changes
+
+- fc6b653: - Fix extract toolParameters in extractParametersFromSchema
+  - Ensures consistency in how parameters are passed to the execute function across the codebase.
+- fc6b653: - Fix extract toolParameters in extractParametersFromSchema
+  - Fixed generateMcpToolInstructions to properly extract parameters from schema.parameters.properties
+  - fix: enhance MCP schema support for complex types and remove duplicate headers
+- fc6b653: - Fix extract toolParameters in extractParametersFromSchema
+  - @copilotkit/shared@1.9.2-next.23
+
+## 1.9.2-next.22
+
+### Patch Changes
+
+- @copilotkit/shared@1.9.2-next.22
+
+## 1.9.2-next.21
+
+### Patch Changes
+
+- @copilotkit/shared@1.9.2-next.21
+
+## 1.9.2-next.20
+
+### Patch Changes
+
+- @copilotkit/shared@1.9.2-next.20
+
+## 1.9.2-next.19
+
+### Patch Changes
+
+- 8e67158: - fixes gemini adapter
+  - @copilotkit/shared@1.9.2-next.19
+
+## 1.9.2-next.18
+
+### Patch Changes
+
+- fac89c2: - refactor: rename onTrace to onError throughout codebase
+
+  - Rename CopilotTraceEvent to CopilotErrorEvent and CopilotTraceHandler to CopilotErrorHandler
+
+- Updated dependencies [fac89c2]
+  - @copilotkit/shared@1.9.2-next.18
+
+## 1.9.2-next.17
+
+### Patch Changes
+
+- 7ca7023: - feat: send node name to agui agent
+  - @copilotkit/shared@1.9.2-next.17
+
+## 1.9.2-next.16
+
+### Patch Changes
+
+- fe9009c: - feat(langgraph): new thread metadata
+  - @copilotkit/shared@1.9.2-next.16
+
+## 1.9.2-next.15
+
+### Patch Changes
+
+- @copilotkit/shared@1.9.2-next.15
+
 ## 1.9.2-next.14
 
 ### Patch Changes

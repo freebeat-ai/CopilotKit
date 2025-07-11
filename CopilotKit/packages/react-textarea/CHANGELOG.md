@@ -1,5 +1,84 @@
 # ui
 
+## 1.9.2-next.23
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.9.2-next.23
+- @copilotkit/react-core@1.9.2-next.23
+- @copilotkit/shared@1.9.2-next.23
+
+## 1.9.2-next.22
+
+### Patch Changes
+
+- Updated dependencies [c75a04f]
+- Updated dependencies [c75a04f]
+  - @copilotkit/react-core@1.9.2-next.22
+  - @copilotkit/runtime-client-gql@1.9.2-next.22
+  - @copilotkit/shared@1.9.2-next.22
+
+## 1.9.2-next.21
+
+### Patch Changes
+
+- Updated dependencies [92e8d1c]
+  - @copilotkit/react-core@1.9.2-next.21
+  - @copilotkit/runtime-client-gql@1.9.2-next.21
+  - @copilotkit/shared@1.9.2-next.21
+
+## 1.9.2-next.20
+
+### Patch Changes
+
+- Updated dependencies [e1de032]
+  - @copilotkit/react-core@1.9.2-next.20
+  - @copilotkit/runtime-client-gql@1.9.2-next.20
+  - @copilotkit/shared@1.9.2-next.20
+
+## 1.9.2-next.19
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.9.2-next.19
+- @copilotkit/react-core@1.9.2-next.19
+- @copilotkit/shared@1.9.2-next.19
+
+## 1.9.2-next.18
+
+### Patch Changes
+
+- Updated dependencies [fac89c2]
+  - @copilotkit/react-core@1.9.2-next.18
+  - @copilotkit/shared@1.9.2-next.18
+  - @copilotkit/runtime-client-gql@1.9.2-next.18
+
+## 1.9.2-next.17
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.9.2-next.17
+- @copilotkit/react-core@1.9.2-next.17
+- @copilotkit/shared@1.9.2-next.17
+
+## 1.9.2-next.16
+
+### Patch Changes
+
+- Updated dependencies [fe9009c]
+  - @copilotkit/react-core@1.9.2-next.16
+  - @copilotkit/runtime-client-gql@1.9.2-next.16
+  - @copilotkit/shared@1.9.2-next.16
+
+## 1.9.2-next.15
+
+### Patch Changes
+
+- Updated dependencies [cbeccb5]
+  - @copilotkit/react-core@1.9.2-next.15
+  - @copilotkit/runtime-client-gql@1.9.2-next.15
+  - @copilotkit/shared@1.9.2-next.15
+
 ## 1.9.2-next.14
 
 ### Patch Changes

@@ -1,5 +1,29 @@
 # @copilotkit/shared
 
+## 1.9.2-next.23
+
+## 1.9.2-next.22
+
+## 1.9.2-next.21
+
+## 1.9.2-next.20
+
+## 1.9.2-next.19
+
+## 1.9.2-next.18
+
+### Patch Changes
+
+- fac89c2: - refactor: rename onTrace to onError throughout codebase
+
+  - Rename CopilotTraceEvent to CopilotErrorEvent and CopilotTraceHandler to CopilotErrorHandler
+
+## 1.9.2-next.17
+
+## 1.9.2-next.16
+
+## 1.9.2-next.15
+
 ## 1.9.2-next.14
 
 ## 1.9.2-next.13
