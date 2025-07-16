@@ -2,4 +2,4 @@
 "@copilotkit/runtime": patch
 ---
 
-- fix: use latest langgraph agui
+- adds scarf deps to runtime

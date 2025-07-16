@@ -487,16 +487,11 @@ export class CopilotRuntime<const T extends Parameter[] | [] = []> {
       publicApiKey,
     } = request;
 
-    const eventSource = new RuntimeEventSource();
-    // Track request start time for logging
-    const requestStartTime = Date.now();
-    // For storing streamed chunks if progressive logging is enabled
-    const streamedChunks: any[] = [];
-
-    // Track request start
-    await this.error(
-      "request",
-      {
+    const eventSource = new RuntimeEventSource({
+      errorHandler: async (error, context) => {
+        await this.error("error", context, error, publicApiKey);
+      },
+      errorContext: {
         threadId,
         runId,
         source: "runtime",
@@ -504,20 +499,18 @@ export class CopilotRuntime<const T extends Parameter[] | [] = []> {
           operation: "processRuntimeRequest",
           method: "POST",
           url: url,
-          startTime: requestStartTime,
+          startTime: Date.now(),
         },
         agent: agentSession ? { name: agentSession.agentName } : undefined,
-        messages: {
-          input: rawMessages,
-          messageCount: rawMessages.length,
-        },
         technical: {
           environment: process.env.NODE_ENV,
         },
       },
-      undefined,
-      publicApiKey,
-    );
+    });
+    // Track request start time for logging
+    const requestStartTime = Date.now();
+    // For storing streamed chunks if progressive logging is enabled
+    const streamedChunks: any[] = [];
 
     try {
       if (
@@ -992,50 +985,28 @@ please use an LLM adapter instead.`,
         headers["Authorization"] = `Bearer ${graphqlContext.properties.authorization}`;
       }
 
-      // Add custom headers if available and is an object
-      if (
-        graphqlContext.properties.headers &&
-        typeof graphqlContext.properties.headers === "object"
-      ) {
-        Object.assign(headers, graphqlContext.properties.headers);
-      }
+      state = client ? ((await client.threads.getState(threadId)).values as any) : {};
+    } catch (error) {
+      // All errors from agent state loading are user configuration issues
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStatus = error?.response?.status || error?.status;
 
-      const response = await fetchWithRetry(fetchUrl, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          properties: graphqlContext.properties,
-          threadId,
-          name: agentName,
-        }),
-      });
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new CopilotKitApiDiscoveryError({ url: fetchUrl });
-        }
+      if (errorStatus === 404) {
+        state = {};
+      } else {
+        // Log user configuration errors at debug level to reduce noise
+        console.debug(`Agent '${agentName}' configuration issue: ${errorMessage}`);
 
-        // Extract semantic error information from response body
-        let errorMessage = `HTTP ${response.status} error`;
-        try {
-          const errorBody = await response.text();
-          const parsedError = JSON.parse(errorBody);
-          if (parsedError.error && typeof parsedError.error === "string") {
-            errorMessage = parsedError.error;
-          }
-        } catch {
-          // If parsing fails, fall back to generic message
-        }
-
+        // Throw a configuration error - all agent state loading failures are user setup issues
         throw new ResolvedCopilotKitError({
-          status: response.status,
-          url: fetchUrl,
-          isRemoteEndpoint: true,
-          message: errorMessage,
+          status: 400,
+          message: `Agent '${agentName}' failed to execute: ${errorMessage}`,
+          code: CopilotKitErrorCode.CONFIGURATION_ERROR,
         });
       }
+    }
 
-      const data: LoadAgentStateResponse = await response.json();
-
+    if (Object.keys(state).length === 0) {
       return {
         ...data,
         state: JSON.stringify(data.state),
@@ -1217,7 +1188,27 @@ please use an LLM adapter instead.`,
     });
 
     try {
-      const eventSource = new RuntimeEventSource();
+      const eventSource = new RuntimeEventSource({
+        errorHandler: async (error, context) => {
+          await this.error("error", context, error, publicApiKey);
+        },
+        errorContext: {
+          threadId,
+          source: "agent",
+          request: {
+            operation: "processAgentRequest",
+            method: "POST",
+            startTime: requestStartTime,
+          },
+          agent: {
+            name: agentName,
+            nodeName: nodeName,
+          },
+          technical: {
+            environment: process.env.NODE_ENV,
+          },
+        },
+      });
       const stream = await currentAgent.remoteAgentHandler({
         name: agentName,
         threadId,

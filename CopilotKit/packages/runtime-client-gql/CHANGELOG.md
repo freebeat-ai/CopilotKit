@@ -1,5 +1,61 @@
 # @copilotkit/runtime-client-gql
 
+## 1.9.3-next.3
+
+### Patch Changes
+
+- Updated dependencies [1bda332]
+  - @copilotkit/shared@1.9.3-next.3
+
+## 1.9.3-next.2
+
+### Patch Changes
+
+- @copilotkit/shared@1.9.3-next.2
+
+## 1.9.3-next.1
+
+### Patch Changes
+
+- @copilotkit/shared@1.9.3-next.1
+
+## 1.9.3-next.0
+
+### Patch Changes
+
+- @copilotkit/shared@1.9.3-next.0
+
+## 1.9.2
+
+### Patch Changes
+
+- 1d1c51d: - feat: surface all errors in structured format
+- 10345a5: - feat: structured error visibility system for streaming errors
+- Updated dependencies [fac89c2]
+- Updated dependencies [9169ad7]
+- Updated dependencies [1d1c51d]
+- Updated dependencies [10345a5]
+- Updated dependencies [9169ad7]
+  - @copilotkit/shared@1.9.2
+
+## 1.9.2-next.26
+
+### Patch Changes
+
+- @copilotkit/shared@1.9.2-next.26
+
+## 1.9.2-next.25
+
+### Patch Changes
+
+- @copilotkit/shared@1.9.2-next.25
+
+## 1.9.2-next.24
+
+### Patch Changes
+
+- @copilotkit/shared@1.9.2-next.24
+
 ## 1.9.2-next.23
 
 ### Patch Changes
