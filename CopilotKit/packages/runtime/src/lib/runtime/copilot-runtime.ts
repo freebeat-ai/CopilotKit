@@ -968,7 +968,6 @@ please use an LLM adapter instead.`,
       : null;
 
     const aguiAgent = graphqlContext._copilotkit.runtime.agents[agent.name] as CrewAIAgent;
-    console.log("aguiAgent", aguiAgent);
     if (!aguiAgent) {
       throw new Error(`Agent: ${agent.name} could not be resolved`);
     }
@@ -985,14 +984,67 @@ please use an LLM adapter instead.`,
         headers["Authorization"] = `Bearer ${graphqlContext.properties.authorization}`;
       }
 
-      state = client ? ((await client.threads.getState(threadId)).values as any) : {};
+      // Add custom headers if available and is an object
+      if (
+        graphqlContext.properties.headers &&
+        typeof graphqlContext.properties.headers === "object"
+      ) {
+        Object.assign(headers, graphqlContext.properties.headers);
+      }
+
+      const response = await fetchWithRetry(fetchUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          properties: graphqlContext.properties,
+          threadId,
+          name: agentName,
+        }),
+      });
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new CopilotKitApiDiscoveryError({ url: fetchUrl });
+        }
+
+        // Extract semantic error information from response body
+        let errorMessage = `HTTP ${response.status} error`;
+        try {
+          const errorBody = await response.text();
+          const parsedError = JSON.parse(errorBody);
+          if (parsedError.error && typeof parsedError.error === "string") {
+            errorMessage = parsedError.error;
+          }
+        } catch {
+          // If parsing fails, fall back to generic message
+        }
+
+        throw new ResolvedCopilotKitError({
+          status: response.status,
+          url: fetchUrl,
+          isRemoteEndpoint: true,
+          message: errorMessage,
+        });
+      }
+
+      const data: LoadAgentStateResponse = await response.json();
+
+      return {
+        ...data,
+        state: JSON.stringify(data.state),
+        messages: JSON.stringify(data.messages),
+      };
     } catch (error) {
       // All errors from agent state loading are user configuration issues
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorStatus = error?.response?.status || error?.status;
 
       if (errorStatus === 404) {
-        state = {};
+        return {
+          threadId: threadId || "",
+          threadExists: false,
+          state: JSON.stringify({}),
+          messages: JSON.stringify([]),
+        };
       } else {
         // Log user configuration errors at debug level to reduce noise
         console.debug(`Agent '${agentName}' configuration issue: ${errorMessage}`);
@@ -1004,19 +1056,6 @@ please use an LLM adapter instead.`,
           code: CopilotKitErrorCode.CONFIGURATION_ERROR,
         });
       }
-    }
-
-    if (Object.keys(state).length === 0) {
-      return {
-        ...data,
-        state: JSON.stringify(data.state),
-        messages: JSON.stringify(data.messages),
-      };
-    } catch (error) {
-      if (error instanceof CopilotKitError) {
-        throw error;
-      }
-      throw new CopilotKitLowLevelError({ error, url: fetchUrl });
     }
 
     // let state: any = {};
@@ -1041,16 +1080,21 @@ please use an LLM adapter instead.`,
     // } catch (error) {
     //   // All errors from agent state loading are user configuration issues
     //   const errorMessage = error instanceof Error ? error.message : String(error);
+    //   const errorStatus = error?.response?.status || error?.status;
 
-    //   // Log user configuration errors at debug level to reduce noise
-    //   console.debug(`Agent '${agentName}' configuration issue: ${errorMessage}`);
+    //   if (errorStatus === 404) {
+    //     state = {};
+    //   } else {
+    //     // Log user configuration errors at debug level to reduce noise
+    //     console.debug(`Agent '${agentName}' configuration issue: ${errorMessage}`);
 
-    //   // Throw a configuration error - all agent state loading failures are user setup issues
-    //   throw new ResolvedCopilotKitError({
-    //     status: 400,
-    //     message: `Agent '${agentName}' failed to execute: ${errorMessage}`,
-    //     code: CopilotKitErrorCode.CONFIGURATION_ERROR,
-    //   });
+    //     // Throw a configuration error - all agent state loading failures are user setup issues
+    //     throw new ResolvedCopilotKitError({
+    //       status: 400,
+    //       message: `Agent '${agentName}' failed to execute: ${errorMessage}`,
+    //       code: CopilotKitErrorCode.CONFIGURATION_ERROR,
+    //     });
+    //   }
     // }
 
     // if (Object.keys(state).length === 0) {
@@ -1071,7 +1115,7 @@ please use an LLM adapter instead.`,
     //   };
     // }
 
-    // throw new Error(`Agent: ${agent.name} could not be resolved`);
+    throw new Error(`Agent: ${agent.name} could not be resolved`);
   }
 
   private async processAgentRequest(
