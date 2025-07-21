@@ -882,19 +882,6 @@ please use an LLM adapter instead.`,
     }));
   }
 
-  /**
-   * Discover CrewAI agents from the local AGUI configuration (Simple synchronous version)
-   * This version directly maps local CrewAI agents without network validation
-   */
-  discoverCrewAIAgentsFromAgui(): Agent[] {
-    // Create a virtual endpoint for local CrewAI agents
-    return Object.values(this.agents ?? []).map((agent: CrewAIAgent) => ({
-      name: "mv_agent",
-      id: agent.agentId,
-      description: "",
-    }));
-  }
-
   async loadAgentState(
     graphqlContext: GraphQLContext,
     threadId: string,
