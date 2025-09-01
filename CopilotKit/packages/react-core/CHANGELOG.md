@@ -1,5 +1,42 @@
 # ui
 
+## 1.10.3
+
+### Patch Changes
+
+- Updated dependencies [ea74047]
+  - @copilotkit/shared@1.10.3
+  - @copilotkit/runtime-client-gql@1.10.3
+
+## 1.10.3-next.3
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.10.3-next.3
+- @copilotkit/shared@1.10.3-next.3
+
+## 1.10.3-next.2
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.10.3-next.2
+- @copilotkit/shared@1.10.3-next.2
+
+## 1.10.3-next.1
+
+### Patch Changes
+
+- @copilotkit/runtime-client-gql@1.10.3-next.1
+- @copilotkit/shared@1.10.3-next.1
+
+## 1.10.3-next.0
+
+### Patch Changes
+
+- Updated dependencies [ea74047]
+  - @copilotkit/shared@1.10.3-next.0
+  - @copilotkit/runtime-client-gql@1.10.3-next.0
+
 ## 1.10.2
 
 ### Patch Changes
