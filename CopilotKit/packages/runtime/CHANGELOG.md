@@ -1,5 +1,41 @@
 # @copilotkit/runtime
 
+## 1.10.4
+
+### Patch Changes
+
+- a640d8e: - feat: update latest agui langgraph for subgraphs support
+  - feat: update latest agui core packages
+- Updated dependencies [a640d8e]
+  - @copilotkit/shared@1.10.4
+
+## 1.10.4-next.3
+
+### Patch Changes
+
+- @copilotkit/shared@1.10.4-next.3
+
+## 1.10.4-next.2
+
+### Patch Changes
+
+- @copilotkit/shared@1.10.4-next.2
+
+## 1.10.4-next.1
+
+### Patch Changes
+
+- a640d8e: - feat: update latest agui langgraph for subgraphs support
+  - feat: update latest agui core packages
+- Updated dependencies [a640d8e]
+  - @copilotkit/shared@1.10.4-next.1
+
+## 1.10.4-next.0
+
+### Patch Changes
+
+- @copilotkit/shared@1.10.4-next.0
+
 ## 1.10.3
 
 ### Patch Changes
