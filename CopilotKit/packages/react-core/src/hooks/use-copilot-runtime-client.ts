@@ -115,15 +115,17 @@ export const useCopilotRuntimeClient = (options: CopilotRuntimeClientHookOptions
           // Process all errors as banners
           graphQLErrors.forEach(routeError);
         } else {
+          // Route non-GraphQL errors to banner as well
+          const fallbackError = new CopilotKitError({
+            message: error?.message || String(error),
+            code: CopilotKitErrorCode.UNKNOWN,
+          });
           const isDev = shouldShowDevConsole(showDevConsole ?? false);
           if (!isDev) {
             console.error("CopilotKit Error (hidden in production):", error);
+            // Trace the non-GraphQL error
+            traceUIError(fallbackError, error);
           } else {
-            // Route non-GraphQL errors to banner as well
-            const fallbackError = new CopilotKitError({
-              message: error?.message || String(error),
-              code: CopilotKitErrorCode.UNKNOWN,
-            });
             setBannerError(fallbackError);
             // Trace the non-GraphQL error
             traceUIError(fallbackError, error);
