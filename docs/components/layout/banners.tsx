@@ -1,5 +1,3 @@
-"use client";
-
 import { Banner } from "fumadocs-ui/components/banner";
 import Link from "next/link";
 import { PaintbrushIcon } from "lucide-react";
@@ -38,7 +36,7 @@ export function ModelContextProtocolBanner() {
   return (
     <Banner className="w-full text-white bg-indigo-500 dark:bg-indigo-900 h-24 sm:h-14 !important" variant="rainbow" id="model-context-protocol-banner">
       <p className="w-3/4">
-        <PiGraph className="w-5 h-5 inline mr-2" /> Model Context Protocol (MCP) support is here! Try it out <Link href="/guides/model-context-protocol" className="underline">here</Link>. Register to our<Link href="https://go.copilotkit.ai/webinarMastra" target="_blank" className="underline ml-1">webinar</Link> for a walkthrough.
+        <PiGraph className="w-5 h-5 inline mr-2" /> Model Context Protocol (MCP) support is here! Try it out <Link href="/direct-to-llm/guides/model-context-protocol" className="underline">here</Link>. Register to our<Link href="https://go.copilotkit.ai/webinarMastra" target="_blank" className="underline ml-1">webinar</Link> for a walkthrough.
       </p>
     </Banner>
   )
@@ -48,12 +46,7 @@ export function AGUIBanner() {
   return (
     <Banner className="w-full text-white bg-indigo-500 dark:bg-indigo-900 h-24 sm:h-14 !important" variant="rainbow" id="agui-banner">
       <p className="w-3/4">
-        <span className="hidden md:inline">
-          CopilotKit and our framework partners have launched the AG-UI (Agent-User Interaction) protocol! <Link href="/ag-ui-protocol" target="_blank" className="underline" rel="noopener noreferrer">Learn more</Link>.
-        </span>
-        <span className="md:hidden">
-          CopilotKit and partners have launched AG-UI! <Link href="/ag-ui-protocol" target="_blank" className="underline" rel="noopener noreferrer">Learn More</Link>.
-        </span>
+        CopilotKit and our framework partners have launched the AG-UI protocol for agent-user interaction! <Link href="/ag-ui-protocol" target="_blank" className="underline" rel="noopener noreferrer">Learn more</Link>.
       </p>
     </Banner>
   )

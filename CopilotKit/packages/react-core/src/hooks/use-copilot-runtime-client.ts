@@ -67,16 +67,10 @@ export const useCopilotRuntimeClient = (options: CopilotRuntimeClientHookOptions
           const routeError = (gqlError: GraphQLError) => {
             const extensions = gqlError.extensions;
             const visibility = extensions?.visibility as ErrorVisibility;
-            const isDev = shouldShowDevConsole(showDevConsole ?? false);
 
             // Silent errors - just log
             if (visibility === ErrorVisibility.SILENT) {
               console.error("CopilotKit Silent Error:", gqlError.message);
-              return;
-            }
-
-            if (!isDev) {
-              console.error("CopilotKit Error (hidden in production):", gqlError.message);
               return;
             }
 
@@ -143,7 +137,7 @@ export const useCopilotRuntimeClient = (options: CopilotRuntimeClientHookOptions
         setBannerError(warningError);
       },
     });
-  }, [runtimeOptions, setBannerError, showDevConsole, onError]);
+  }, [runtimeOptions, setBannerError, onError]);
 
   return runtimeClient;
 };
